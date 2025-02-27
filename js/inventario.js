@@ -12,9 +12,18 @@ class InventarioManager {
         this.closeBtn = document.querySelector('.close-btn');
         this.searchInput = document.getElementById('search-input');
         this.emptyInventory = document.getElementById('empty-inventory');
+        this.activeDropdown = null;
         
         // Inicializar la aplicación
         this.init();
+        
+        // Cerrar dropdowns al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.action-dropdown') && this.activeDropdown) {
+                this.activeDropdown.classList.remove('show');
+                this.activeDropdown = null;
+            }
+        });
     }
     
     // Inicializar eventos y cargar datos
@@ -125,20 +134,61 @@ class InventarioManager {
                 <td>${item.notes || '—'}</td>
                 <td>${lastUpdated}</td>
                 <td class="action-buttons">
-                    <button class="btn btn-sm btn-primary edit-btn" data-id="${item.id}">Editar</button>
-                    <button class="btn btn-sm btn-info history-btn" data-id="${item.id}">Historial</button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="${item.id}">Eliminar</button>
+                    <div class="action-dropdown">
+                        <button class="btn btn-sm btn-secondary dropdown-toggle">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu" data-id="${item.id}">
+                            <button class="dropdown-item edit-btn" data-id="${item.id}">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="dropdown-item history-btn" data-id="${item.id}">
+                                <i class="fas fa-history"></i> Historial
+                            </button>
+                            <button class="dropdown-item delete-btn text-danger" data-id="${item.id}">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
                 </td>
             `;
+            
+            // Configurar el dropdown
+            const dropdown = tr.querySelector('.action-dropdown');
+            const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
+            const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+            
+            dropdownToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (this.activeDropdown && this.activeDropdown !== dropdownMenu) {
+                    this.activeDropdown.classList.remove('show');
+                }
+                dropdownMenu.classList.toggle('show');
+                this.activeDropdown = dropdownMenu.classList.contains('show') ? dropdownMenu : null;
+            });
             
             // Agregar eventos a los botones
             const editBtn = tr.querySelector('.edit-btn');
             const deleteBtn = tr.querySelector('.delete-btn');
             const historyBtn = tr.querySelector('.history-btn');
             
-            editBtn.addEventListener('click', () => this.showEditModal(item.id));
-            deleteBtn.addEventListener('click', () => this.deleteItem(item.id));
-            historyBtn.addEventListener('click', () => this.showHistory(item.id));
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showEditModal(item.id);
+                dropdownMenu.classList.remove('show');
+            });
+            
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteItem(item.id);
+                dropdownMenu.classList.remove('show');
+            });
+            
+            historyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showHistory(item.id);
+                dropdownMenu.classList.remove('show');
+            });
             
             this.inventoryList.appendChild(tr);
         });
@@ -449,6 +499,70 @@ function addInventoryStyles() {
         
         .btn-info:hover {
             background-color: #0284c7;
+        }
+        
+        .action-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-toggle {
+            padding: 0.4rem 0.8rem;
+            background-color: var(--secondary-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        
+        .dropdown-toggle:hover {
+            background-color: var(--border-color);
+        }
+        
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            min-width: 160px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 0.5rem 0;
+            z-index: 1000;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .dropdown-item i {
+            width: 1.2rem;
+            text-align: center;
+            margin-right: 0.5rem;
+        }
+        
+        .text-danger {
+            color: var(--danger-color) !important;
+        }
+        
+        .text-danger:hover {
+            background-color: rgba(239, 68, 68, 0.1) !important;
         }
     `;
     document.head.appendChild(style);
