@@ -93,8 +93,8 @@ class LimpiezaManager {
             const card = document.createElement('div');
             card.className = 'limpieza-item';
             
-            // Formatear fecha
-            const fechaLimpieza = item.ultimaLimpieza ? new Date(item.ultimaLimpieza).toLocaleDateString() : '—';
+            // Usar la fecha exacta como fue ingresada
+            const fechaLimpieza = item.ultimaLimpieza || '—';
             
             card.innerHTML = `
                 <div class="limpieza-header">
