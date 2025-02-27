@@ -1,4 +1,4 @@
-// Módulo para gestionar fechas de limpieza de artículos
+// Módulo para gestionar registros de limpieza
 class LimpiezaManager {
     constructor() {
         this.storageKey = 'limpiezaAseo';
@@ -81,65 +81,35 @@ class LimpiezaManager {
             this.emptyState.style.display = 'none';
         }
         
-        // Ordenar por fecha de próxima limpieza (los más cercanos primero)
+        // Ordenar por fecha de limpieza (las más recientes primero)
         const sortedItems = [...items].sort((a, b) => {
-            if (!a.proximaLimpieza) return 1;
-            if (!b.proximaLimpieza) return -1;
-            return new Date(a.proximaLimpieza) - new Date(b.proximaLimpieza);
+            if (!a.ultimaLimpieza) return 1;
+            if (!b.ultimaLimpieza) return -1;
+            return new Date(b.ultimaLimpieza) - new Date(a.ultimaLimpieza);
         });
         
         // Añadir cada registro a la lista
         sortedItems.forEach(item => {
-            const li = document.createElement('div');
-            li.className = 'limpieza-item';
+            const card = document.createElement('div');
+            card.className = 'limpieza-item';
             
-            // Calcular si está próximo a vencer
-            const hoy = new Date();
-            const proximaLimpieza = new Date(item.proximaLimpieza);
-            const diasRestantes = Math.ceil((proximaLimpieza - hoy) / (1000 * 60 * 60 * 24));
-            const esUrgente = diasRestantes <= 2 && diasRestantes >= 0;
-            const esVencido = diasRestantes < 0;
+            // Formatear fecha
+            const fechaLimpieza = item.ultimaLimpieza ? new Date(item.ultimaLimpieza).toLocaleDateString() : '—';
             
-            // Aplicar clase según estado
-            if (esVencido) {
-                li.classList.add('vencido');
-            } else if (esUrgente) {
-                li.classList.add('urgente');
-            }
-            
-            // Formatear fechas
-            const ultimaLimpiezaFormatted = item.ultimaLimpieza ? new Date(item.ultimaLimpieza).toLocaleDateString() : '—';
-            const proximaLimpiezaFormatted = item.proximaLimpieza ? new Date(item.proximaLimpieza).toLocaleDateString() : '—';
-            
-            li.innerHTML = `
+            card.innerHTML = `
                 <div class="limpieza-header">
-                    <h3>${item.nombre}</h3>
-                    <div class="limpieza-badges">
-                        ${esVencido ? '<span class="badge vencido">Vencido</span>' : ''}
-                        ${esUrgente ? '<span class="badge urgente">Próximo</span>' : ''}
-                    </div>
+                    <h3>Limpieza: ${fechaLimpieza}</h3>
                 </div>
-                <div class="limpieza-details">
-                    <p><strong>Frecuencia:</strong> ${item.frecuencia} días</p>
-                    <p><strong>Última limpieza:</strong> ${ultimaLimpiezaFormatted}</p>
-                    <p><strong>Próxima limpieza:</strong> ${proximaLimpiezaFormatted}</p>
-                    ${item.notas ? `<p class="limpieza-notes">${item.notas}</p>` : ''}
-                </div>
+                ${item.notas ? `<p class="limpieza-notes">${item.notas}</p>` : ''}
                 <div class="limpieza-actions">
-                    <button class="btn btn-sm btn-success limpiar-btn" data-id="${item.id}">Marcar como Limpio</button>
                     <button class="btn btn-sm btn-primary edit-btn" data-id="${item.id}">Editar</button>
                     <button class="btn btn-sm btn-danger delete-btn" data-id="${item.id}">Eliminar</button>
                 </div>
             `;
             
             // Agregar eventos a los botones
-            const limpiarBtn = li.querySelector('.limpiar-btn');
-            const editBtn = li.querySelector('.edit-btn');
-            const deleteBtn = li.querySelector('.delete-btn');
-            
-            if (limpiarBtn) {
-                limpiarBtn.addEventListener('click', () => this.marcarComoLimpio(item.id));
-            }
+            const editBtn = card.querySelector('.edit-btn');
+            const deleteBtn = card.querySelector('.delete-btn');
             
             if (editBtn) {
                 editBtn.addEventListener('click', () => this.showEditModal(item.id));
@@ -149,7 +119,7 @@ class LimpiezaManager {
                 deleteBtn.addEventListener('click', () => this.deleteLimpieza(item.id));
             }
             
-            this.limpiezaList.appendChild(li);
+            this.limpiezaList.appendChild(card);
         });
     }
     
@@ -158,26 +128,13 @@ class LimpiezaManager {
         e.preventDefault();
         
         // Obtener valores del formulario
-        const nombre = document.getElementById('limpieza-nombre').value;
-        const frecuencia = parseInt(document.getElementById('limpieza-frecuencia').value);
         const ultimaLimpieza = document.getElementById('limpieza-ultima').value;
         const notas = document.getElementById('limpieza-notas').value;
-        
-        // Calcular próxima limpieza
-        let proximaLimpieza = null;
-        if (ultimaLimpieza) {
-            const fecha = new Date(ultimaLimpieza);
-            fecha.setDate(fecha.getDate() + frecuencia);
-            proximaLimpieza = fecha.toISOString().split('T')[0];
-        }
         
         // Crear nuevo registro
         const nuevoRegistro = {
             id: Date.now().toString(),
-            nombre,
-            frecuencia,
             ultimaLimpieza,
-            proximaLimpieza,
             notas,
             createdAt: new Date().toISOString()
         };
@@ -201,33 +158,6 @@ class LimpiezaManager {
         this.showNotification('Registro de limpieza agregado correctamente', 'success');
     }
     
-    // Marcar un artículo como recién limpiado
-    marcarComoLimpio(id) {
-        const limpiezas = this.getLimpiezasFromStorage();
-        const index = limpiezas.findIndex(item => item.id === id);
-        
-        if (index !== -1) {
-            const hoy = new Date().toISOString().split('T')[0];
-            
-            // Actualizar la última fecha de limpieza
-            limpiezas[index].ultimaLimpieza = hoy;
-            
-            // Calcular la próxima fecha de limpieza
-            const proximaFecha = new Date();
-            proximaFecha.setDate(proximaFecha.getDate() + limpiezas[index].frecuencia);
-            limpiezas[index].proximaLimpieza = proximaFecha.toISOString().split('T')[0];
-            
-            // Guardar cambios
-            this.saveLimpiezasToStorage(limpiezas);
-            
-            // Actualizar la lista
-            this.displayLimpiezas();
-            
-            // Notificar al usuario
-            this.showNotification(`${limpiezas[index].nombre} marcado como limpio`, 'success');
-        }
-    }
-    
     // Mostrar el modal de edición
     showEditModal(id) {
         if (!this.editModal) return;
@@ -239,8 +169,6 @@ class LimpiezaManager {
         
         // Rellenar el formulario con los datos del item
         document.getElementById('limpieza-edit-id').value = item.id;
-        document.getElementById('limpieza-edit-nombre').value = item.nombre;
-        document.getElementById('limpieza-edit-frecuencia').value = item.frecuencia;
         document.getElementById('limpieza-edit-ultima').value = item.ultimaLimpieza || '';
         document.getElementById('limpieza-edit-notas').value = item.notas || '';
         
@@ -254,18 +182,8 @@ class LimpiezaManager {
         
         // Obtener los valores del formulario de edición
         const id = document.getElementById('limpieza-edit-id').value;
-        const nombre = document.getElementById('limpieza-edit-nombre').value;
-        const frecuencia = parseInt(document.getElementById('limpieza-edit-frecuencia').value);
         const ultimaLimpieza = document.getElementById('limpieza-edit-ultima').value;
         const notas = document.getElementById('limpieza-edit-notas').value;
-        
-        // Calcular próxima limpieza
-        let proximaLimpieza = null;
-        if (ultimaLimpieza) {
-            const fecha = new Date(ultimaLimpieza);
-            fecha.setDate(fecha.getDate() + frecuencia);
-            proximaLimpieza = fecha.toISOString().split('T')[0];
-        }
         
         // Obtener todos los registros y encontrar el índice del registro a actualizar
         const limpiezas = this.getLimpiezasFromStorage();
@@ -275,10 +193,7 @@ class LimpiezaManager {
             // Actualizar el registro
             limpiezas[index] = {
                 ...limpiezas[index],
-                nombre,
-                frecuencia,
                 ultimaLimpieza,
-                proximaLimpieza,
                 notas,
                 updatedAt: new Date().toISOString()
             };
@@ -315,7 +230,7 @@ class LimpiezaManager {
         }
     }
     
-    // Filtrar registros por nombre
+    // Filtrar registros por notas
     filterItems() {
         if (!this.searchInput) return;
         
@@ -324,10 +239,9 @@ class LimpiezaManager {
         // Obtener todos los registros
         const limpiezas = this.getLimpiezasFromStorage();
         
-        // Aplicar filtro por texto
+        // Aplicar filtro por texto en las notas
         const filteredItems = limpiezas.filter(item => {
-            return item.nombre.toLowerCase().includes(searchTerm) || 
-                  (item.notas && item.notas.toLowerCase().includes(searchTerm));
+            return (item.notas && item.notas.toLowerCase().includes(searchTerm));
         });
         
         // Mostrar los items filtrados
@@ -359,7 +273,7 @@ class LimpiezaManager {
     }
 }
 
-// Añadir estilos para notificaciones dinámicamente
+// Añadir estilos para notificaciones y el registro de limpiezas dinámicamente
 function addLimpiezaStyles() {
     const style = document.createElement('style');
     style.textContent = `
@@ -412,34 +326,9 @@ function addLimpiezaStyles() {
             color: var(--primary-color);
         }
         
-        .limpieza-badges {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .badge {
-            padding: 0.2rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .badge.vencido {
-            background-color: rgba(255, 71, 87, 0.15);
-            color: var(--danger-color);
-        }
-        
-        .badge.urgente {
-            background-color: rgba(255, 165, 2, 0.15);
-            color: var(--warning-color);
-        }
-        
-        .limpieza-details {
-            margin-bottom: 1rem;
-        }
-        
-        .limpieza-details p {
-            margin: 0.3rem 0;
+        .limpieza-date {
+            font-size: 0.9rem;
+            color: var(--text-light);
         }
         
         .limpieza-notes {
@@ -448,20 +337,13 @@ function addLimpiezaStyles() {
             border-left: 3px solid var(--border-color);
             padding-left: 0.5rem;
             margin-top: 0.5rem;
+            margin-bottom: 1rem;
         }
         
         .limpieza-actions {
             display: flex;
             gap: 0.5rem;
             justify-content: flex-end;
-        }
-        
-        .limpieza-item.vencido {
-            border-left: 4px solid var(--danger-color);
-        }
-        
-        .limpieza-item.urgente {
-            border-left: 4px solid var(--warning-color);
         }
     `;
     document.head.appendChild(style);

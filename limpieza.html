@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Limpieza</title>
+    <title>Tareas de Limpieza</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,12 +11,12 @@
 </head>
 <body>
     <header>
-        <h1>Control de Limpieza</h1>
-        <p class="tagline">Seguimiento de tareas de limpieza</p>
+        <h1>Tareas de Limpieza</h1>
+        <p class="tagline">Registro simple de limpieza</p>
         <nav class="main-nav">
             <ul>
                 <li><a href="index.html">Inventario</a></li>
-                <li class="active"><a href="limpieza.html">Control de Limpieza</a></li>
+                <li class="active"><a href="limpieza.html">Tareas de Limpieza</a></li>
             </ul>
         </nav>
     </header>
@@ -24,25 +24,15 @@
     <div class="container">
         <section class="form-section">
             <div class="card">
-                <h2>Registrar Tarea de Limpieza</h2>
+                <h2>Registrar Limpieza</h2>
                 <form id="limpieza-form">
                     <div class="input-group">
-                        <label for="limpieza-nombre">Nombre del artículo o área</label>
-                        <input type="text" id="limpieza-nombre" required>
+                        <label for="limpieza-ultima">Fecha de limpieza</label>
+                        <input type="date" id="limpieza-ultima" required>
                     </div>
                     
                     <div class="input-group">
-                        <label for="limpieza-frecuencia">Frecuencia de limpieza (días)</label>
-                        <input type="number" id="limpieza-frecuencia" min="1" value="7" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="limpieza-ultima">Última limpieza</label>
-                        <input type="date" id="limpieza-ultima">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="limpieza-notas">Instrucciones o notas</label>
+                        <label for="limpieza-notas">Notas (opcional)</label>
                         <textarea id="limpieza-notas"></textarea>
                     </div>
                     
@@ -54,9 +44,9 @@
         <section class="limpieza-section">
             <div class="card">
                 <div class="card-header">
-                    <h2>Tareas de Limpieza</h2>
+                    <h2>Registro de Limpiezas</h2>
                     <div class="filter-controls">
-                        <input type="text" id="limpieza-search" placeholder="Buscar tareas...">
+                        <input type="text" id="limpieza-search" placeholder="Buscar registros...">
                     </div>
                 </div>
                 
@@ -65,38 +55,28 @@
                 </div>
 
                 <div id="empty-limpieza" class="empty-state">
-                    <p>No hay tareas de limpieza registradas</p>
-                    <p>Agrega tareas usando el formulario</p>
+                    <p>No hay registros de limpieza</p>
+                    <p>Agrega registros usando el formulario</p>
                 </div>
             </div>
         </section>
     </div>
 
-    <!-- Modal para editar tareas de limpieza -->
+    <!-- Modal para editar registros de limpieza -->
     <div id="limpieza-edit-modal" class="modal">
         <div class="modal-content">
             <span class="limpieza-close-btn close-btn">&times;</span>
-            <h2>Editar Tarea de Limpieza</h2>
+            <h2>Editar Registro</h2>
             <form id="limpieza-edit-form">
                 <input type="hidden" id="limpieza-edit-id">
                 
                 <div class="input-group">
-                    <label for="limpieza-edit-nombre">Nombre del artículo o área</label>
-                    <input type="text" id="limpieza-edit-nombre" required>
+                    <label for="limpieza-edit-ultima">Fecha de limpieza</label>
+                    <input type="date" id="limpieza-edit-ultima" required>
                 </div>
                 
                 <div class="input-group">
-                    <label for="limpieza-edit-frecuencia">Frecuencia de limpieza (días)</label>
-                    <input type="number" id="limpieza-edit-frecuencia" min="1" required>
-                </div>
-                
-                <div class="input-group">
-                    <label for="limpieza-edit-ultima">Última limpieza</label>
-                    <input type="date" id="limpieza-edit-ultima">
-                </div>
-                
-                <div class="input-group">
-                    <label for="limpieza-edit-notas">Instrucciones o notas</label>
+                    <label for="limpieza-edit-notas">Notas (opcional)</label>
                     <textarea id="limpieza-edit-notas"></textarea>
                 </div>
                 
@@ -107,16 +87,5 @@
 
     <!-- Incorporar el script de limpieza -->
     <script src="js/limpieza.js"></script>
-    
-    <!-- Enlace de exportación a GitHub -->
-    <footer>
-        <div class="container">
-            <p>
-                <a href="https://github.com/tu-usuario-github/inventario-aseo" target="_blank" class="github-link">
-                    Ver en GitHub
-                </a>
-            </p>
-        </div>
-    </footer>
 </body>
 </html>
