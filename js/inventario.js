@@ -2,6 +2,7 @@
 class InventarioManager {
     constructor() {
         this.storageKey = 'inventarioAseo';
+        this.historyStorageKey = 'inventarioHistorial';
         
         // Referencias a elementos del DOM
         this.itemForm = document.getElementById('item-form');
@@ -57,9 +58,33 @@ class InventarioManager {
         return items ? JSON.parse(items) : [];
     }
     
+    // Obtener historial del localStorage
+    getHistoryFromStorage() {
+        let history = localStorage.getItem(this.historyStorageKey);
+        return history ? JSON.parse(history) : {};
+    }
+    
     // Guardar items en localStorage
     saveItemsToStorage(items) {
         localStorage.setItem(this.storageKey, JSON.stringify(items));
+    }
+    
+    // Guardar historial en localStorage
+    saveHistoryToStorage(history) {
+        localStorage.setItem(this.historyStorageKey, JSON.stringify(history));
+    }
+    
+    // Registrar un cambio en el historial
+    addToHistory(itemId, change) {
+        const history = this.getHistoryFromStorage();
+        if (!history[itemId]) {
+            history[itemId] = [];
+        }
+        history[itemId].push({
+            ...change,
+            timestamp: new Date().toISOString()
+        });
+        this.saveHistoryToStorage(history);
     }
     
     // Mostrar los items en la tabla
@@ -84,12 +109,24 @@ class InventarioManager {
         items.forEach(item => {
             const tr = document.createElement('tr');
             
+            // Añadir clase para items sin stock
+            if (parseInt(item.quantity) === 0) {
+                tr.classList.add('out-of-stock');
+            }
+            
+            const lastUpdated = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'No actualizado';
+            
             tr.innerHTML = `
-                <td>${item.name}</td>
+                <td>
+                    ${item.name}
+                    ${parseInt(item.quantity) === 0 ? '<span class="stock-alert">Sin stock</span>' : ''}
+                </td>
                 <td>${item.quantity}</td>
                 <td>${item.notes || '—'}</td>
+                <td>${lastUpdated}</td>
                 <td class="action-buttons">
                     <button class="btn btn-sm btn-primary edit-btn" data-id="${item.id}">Editar</button>
+                    <button class="btn btn-sm btn-info history-btn" data-id="${item.id}">Historial</button>
                     <button class="btn btn-sm btn-danger delete-btn" data-id="${item.id}">Eliminar</button>
                 </td>
             `;
@@ -97,12 +134,71 @@ class InventarioManager {
             // Agregar eventos a los botones
             const editBtn = tr.querySelector('.edit-btn');
             const deleteBtn = tr.querySelector('.delete-btn');
+            const historyBtn = tr.querySelector('.history-btn');
             
             editBtn.addEventListener('click', () => this.showEditModal(item.id));
             deleteBtn.addEventListener('click', () => this.deleteItem(item.id));
+            historyBtn.addEventListener('click', () => this.showHistory(item.id));
             
             this.inventoryList.appendChild(tr);
         });
+    }
+    
+    // Mostrar historial de un item
+    showHistory(id) {
+        const items = this.getItemsFromStorage();
+        const item = items.find(item => item.id === id);
+        const history = this.getHistoryFromStorage()[id] || [];
+        
+        // Crear modal de historial
+        const modal = document.createElement('div');
+        modal.className = 'modal history-modal';
+        modal.style.display = 'flex';
+        
+        let historyHTML = history.map(entry => `
+            <div class="history-entry">
+                <div class="history-date">${new Date(entry.timestamp).toLocaleString()}</div>
+                <div class="history-details">
+                    ${entry.type === 'update' ? `
+                        Cantidad cambió de ${entry.oldQuantity} a ${entry.newQuantity}
+                        ${entry.notes ? `<br>Notas: ${entry.notes}` : ''}
+                    ` : entry.type === 'create' ? `
+                        Artículo creado con cantidad inicial: ${entry.quantity}
+                    ` : `
+                        Artículo eliminado
+                    `}
+                </div>
+            </div>
+        `).join('');
+        
+        if (history.length === 0) {
+            historyHTML = '<p>No hay historial disponible</p>';
+        }
+        
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h2>Historial de "${item.name}"</h2>
+                <div class="history-list">
+                    ${historyHTML}
+                </div>
+            </div>
+        `;
+        
+        // Agregar evento para cerrar
+        const closeBtn = modal.querySelector('.close-btn');
+        closeBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        // Cerrar al hacer clic fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+        
+        document.body.appendChild(modal);
     }
     
     // Agregar un nuevo item
@@ -120,12 +216,20 @@ class InventarioManager {
             name,
             quantity,
             notes,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         };
         
         // Agregar item a la lista
         const items = this.getItemsFromStorage();
         items.push(newItem);
+        
+        // Registrar en el historial
+        this.addToHistory(newItem.id, {
+            type: 'create',
+            quantity: quantity,
+            notes: notes
+        });
         
         // Guardar en localStorage
         this.saveItemsToStorage(items);
@@ -138,23 +242,6 @@ class InventarioManager {
         
         // Notificar al usuario
         this.showNotification('Artículo agregado correctamente', 'success');
-    }
-    
-    // Mostrar el modal de edición
-    showEditModal(id) {
-        const items = this.getItemsFromStorage();
-        const item = items.find(item => item.id === id);
-        
-        if (!item) return;
-        
-        // Rellenar el formulario con los datos del item
-        document.getElementById('edit-id').value = item.id;
-        document.getElementById('edit-name').value = item.name;
-        document.getElementById('edit-quantity').value = item.quantity;
-        document.getElementById('edit-notes').value = item.notes || '';
-        
-        // Mostrar el modal
-        this.editModal.style.display = 'flex';
     }
     
     // Actualizar un item existente
@@ -172,6 +259,8 @@ class InventarioManager {
         const index = items.findIndex(item => item.id === id);
         
         if (index !== -1) {
+            const oldQuantity = items[index].quantity;
+            
             // Actualizar el item
             items[index] = {
                 ...items[index],
@@ -180,6 +269,16 @@ class InventarioManager {
                 notes,
                 updatedAt: new Date().toISOString()
             };
+            
+            // Registrar en el historial si la cantidad cambió
+            if (oldQuantity !== quantity) {
+                this.addToHistory(id, {
+                    type: 'update',
+                    oldQuantity: oldQuantity,
+                    newQuantity: quantity,
+                    notes: notes
+                });
+            }
             
             // Guardar en localStorage
             this.saveItemsToStorage(items);
@@ -192,6 +291,11 @@ class InventarioManager {
             
             // Notificar al usuario
             this.showNotification('Artículo actualizado correctamente', 'success');
+            
+            // Mostrar alerta si el stock llegó a 0
+            if (parseInt(quantity) === 0) {
+                this.showNotification(`¡Atención! ${name} se ha quedado sin stock`, 'warning');
+            }
         }
     }
     
@@ -200,7 +304,15 @@ class InventarioManager {
         if (confirm('¿Estás seguro de que quieres eliminar este artículo?')) {
             // Obtener todos los items y filtrar el item a eliminar
             const items = this.getItemsFromStorage();
+            const itemToDelete = items.find(item => item.id === id);
             const updatedItems = items.filter(item => item.id !== id);
+            
+            // Registrar en el historial
+            this.addToHistory(id, {
+                type: 'delete',
+                name: itemToDelete.name,
+                quantity: itemToDelete.quantity
+            });
             
             // Guardar en localStorage
             this.saveItemsToStorage(updatedItems);
@@ -292,8 +404,59 @@ function addNotificationStyles() {
     document.head.appendChild(style);
 }
 
+// Añadir estilos necesarios
+function addInventoryStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .out-of-stock {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        .stock-alert {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+        
+        .history-modal .modal-content {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .history-entry {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .history-date {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+        
+        .history-details {
+            color: var(--text-color);
+        }
+        
+        .btn-info {
+            background-color: #0ea5e9;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #0284c7;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // Iniciar la aplicación cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     addNotificationStyles();
+    addInventoryStyles();
     new InventarioManager();
 });
