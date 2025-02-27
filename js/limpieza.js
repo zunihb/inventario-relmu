@@ -93,8 +93,13 @@ class LimpiezaManager {
             const card = document.createElement('div');
             card.className = 'limpieza-item';
             
-            // Usar la fecha exacta como fue ingresada
-            const fechaLimpieza = item.ultimaLimpieza || '—';
+            // Formatear fecha como DD-MM-YY
+            let fechaLimpieza = '—';
+            if (item.ultimaLimpieza) {
+                const partesFecha = item.ultimaLimpieza.split('-');
+                const año = partesFecha[0].slice(2); // Tomar solo los últimos 2 dígitos del año
+                fechaLimpieza = `${partesFecha[2]}-${partesFecha[1]}-${año}`;
+            }
             
             card.innerHTML = `
                 <div class="limpieza-header">
