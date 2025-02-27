@@ -9,7 +9,7 @@ class InventarioManager {
         this.inventoryList = document.getElementById('inventory-list');
         this.editModal = document.getElementById('edit-modal');
         this.editForm = document.getElementById('edit-form');
-        this.closeBtn = document.querySelector('.close-btn');
+        this.closeBtn = document.querySelector('#edit-modal .close-btn');
         this.searchInput = document.getElementById('search-input');
         this.emptyInventory = document.getElementById('empty-inventory');
         this.activeDropdown = null;
@@ -22,6 +22,13 @@ class InventarioManager {
             if (!e.target.closest('.action-dropdown') && this.activeDropdown) {
                 this.activeDropdown.classList.remove('show');
                 this.activeDropdown = null;
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.addEventListener('click', (e) => {
+            if (e.target === this.editModal) {
+                this.editModal.style.display = 'none';
             }
         });
     }
@@ -42,13 +49,6 @@ class InventarioManager {
         if (this.closeBtn) {
             this.closeBtn.addEventListener('click', () => {
                 this.editModal.style.display = 'none';
-            });
-            
-            // Cerrar modal al hacer clic fuera de él
-            window.addEventListener('click', (e) => {
-                if (e.target === this.editModal) {
-                    this.editModal.style.display = 'none';
-                }
             });
         }
         
@@ -249,6 +249,23 @@ class InventarioManager {
         });
         
         document.body.appendChild(modal);
+    }
+    
+    // Mostrar el modal de edición
+    showEditModal(id) {
+        const items = this.getItemsFromStorage();
+        const item = items.find(item => item.id === id);
+        
+        if (!item || !this.editModal) return;
+        
+        // Rellenar el formulario con los datos del item
+        document.getElementById('edit-id').value = item.id;
+        document.getElementById('edit-name').value = item.name;
+        document.getElementById('edit-quantity').value = item.quantity;
+        document.getElementById('edit-notes').value = item.notes || '';
+        
+        // Mostrar el modal
+        this.editModal.style.display = 'flex';
     }
     
     // Agregar un nuevo item
