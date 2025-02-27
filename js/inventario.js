@@ -10,7 +10,6 @@ class InventarioManager {
         this.editForm = document.getElementById('edit-form');
         this.closeBtn = document.querySelector('.close-btn');
         this.searchInput = document.getElementById('search-input');
-        this.categoryFilter = document.getElementById('category-filter');
         this.emptyInventory = document.getElementById('empty-inventory');
         
         // Inicializar la aplicación
@@ -20,26 +19,33 @@ class InventarioManager {
     // Inicializar eventos y cargar datos
     init() {
         // Evento para agregar item
-        this.itemForm.addEventListener('submit', this.addItem.bind(this));
+        if (this.itemForm) {
+            this.itemForm.addEventListener('submit', this.addItem.bind(this));
+        }
         
         // Evento para editar item
-        this.editForm.addEventListener('submit', this.updateItem.bind(this));
+        if (this.editForm) {
+            this.editForm.addEventListener('submit', this.updateItem.bind(this));
+        }
         
         // Cerrar modal
-        this.closeBtn.addEventListener('click', () => {
-            this.editModal.style.display = 'none';
-        });
-        
-        // Cerrar modal al hacer clic fuera de él
-        window.addEventListener('click', (e) => {
-            if (e.target === this.editModal) {
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => {
                 this.editModal.style.display = 'none';
-            }
-        });
+            });
+            
+            // Cerrar modal al hacer clic fuera de él
+            window.addEventListener('click', (e) => {
+                if (e.target === this.editModal) {
+                    this.editModal.style.display = 'none';
+                }
+            });
+        }
         
-        // Eventos para filtrar y buscar
-        this.searchInput.addEventListener('input', this.filterItems.bind(this));
-        this.categoryFilter.addEventListener('change', this.filterItems.bind(this));
+        // Eventos para filtrar
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', this.filterItems.bind(this));
+        }
         
         // Cargar items del localStorage
         this.displayItems();
@@ -78,13 +84,9 @@ class InventarioManager {
         items.forEach(item => {
             const tr = document.createElement('tr');
             
-            // Crear la categoría con estilo
-            const categoryBadge = `<span class="category-badge category-${item.category}">${this.getCategoryLabel(item.category)}</span>`;
-            
             tr.innerHTML = `
                 <td>${item.name}</td>
                 <td>${item.quantity}</td>
-                <td>${categoryBadge}</td>
                 <td>${item.notes || '—'}</td>
                 <td class="action-buttons">
                     <button class="btn btn-sm btn-primary edit-btn" data-id="${item.id}">Editar</button>
@@ -103,17 +105,6 @@ class InventarioManager {
         });
     }
     
-    // Obtener label legible para categorías
-    getCategoryLabel(category) {
-        const labels = {
-            'limpieza': 'Limpieza',
-            'baño': 'Baño',
-            'cocina': 'Cocina',
-            'otro': 'Otro'
-        };
-        return labels[category] || category;
-    }
-    
     // Agregar un nuevo item
     addItem(e) {
         e.preventDefault();
@@ -121,7 +112,6 @@ class InventarioManager {
         // Obtener valores del formulario
         const name = document.getElementById('item-name').value;
         const quantity = document.getElementById('item-quantity').value;
-        const category = document.getElementById('item-category').value;
         const notes = document.getElementById('item-notes').value;
         
         // Crear nuevo item
@@ -129,7 +119,6 @@ class InventarioManager {
             id: Date.now().toString(),
             name,
             quantity,
-            category,
             notes,
             createdAt: new Date().toISOString()
         };
@@ -162,7 +151,6 @@ class InventarioManager {
         document.getElementById('edit-id').value = item.id;
         document.getElementById('edit-name').value = item.name;
         document.getElementById('edit-quantity').value = item.quantity;
-        document.getElementById('edit-category').value = item.category;
         document.getElementById('edit-notes').value = item.notes || '';
         
         // Mostrar el modal
@@ -177,7 +165,6 @@ class InventarioManager {
         const id = document.getElementById('edit-id').value;
         const name = document.getElementById('edit-name').value;
         const quantity = document.getElementById('edit-quantity').value;
-        const category = document.getElementById('edit-category').value;
         const notes = document.getElementById('edit-notes').value;
         
         // Obtener todos los items y encontrar el índice del item a actualizar
@@ -190,7 +177,6 @@ class InventarioManager {
                 ...items[index],
                 name,
                 quantity,
-                category,
                 notes,
                 updatedAt: new Date().toISOString()
             };
@@ -227,24 +213,19 @@ class InventarioManager {
         }
     }
     
-    // Filtrar items por búsqueda y categoría
+    // Filtrar items por texto
     filterItems() {
+        if (!this.searchInput) return;
+        
         const searchTerm = this.searchInput.value.toLowerCase();
-        const categoryFilter = this.categoryFilter.value;
         
         // Obtener todos los items
         const items = this.getItemsFromStorage();
         
-        // Aplicar filtros
+        // Aplicar filtro por texto de búsqueda
         const filteredItems = items.filter(item => {
-            // Filtro por texto de búsqueda
-            const matchesSearch = item.name.toLowerCase().includes(searchTerm) || 
-                                 (item.notes && item.notes.toLowerCase().includes(searchTerm));
-            
-            // Filtro por categoría
-            const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-            
-            return matchesSearch && matchesCategory;
+            return item.name.toLowerCase().includes(searchTerm) || 
+                   (item.notes && item.notes.toLowerCase().includes(searchTerm));
         });
         
         // Mostrar los items filtrados
