@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tareas de Limpieza</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>Tareas de Limpieza</h1>
+        <p class="tagline">Registro simple de limpieza</p>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="index.html">Inventario</a></li>
+                <li class="active"><a href="limpieza.html">Tareas de Limpieza</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <section class="form-section">
+            <div class="card">
+                <h2>Registrar Limpieza</h2>
+                <form id="limpieza-form">
+                    <div class="input-group">
+                        <label for="limpieza-ultima">Fecha de limpieza</label>
+                        <input type="date" id="limpieza-ultima" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="limpieza-notas">Notas (opcional)</label>
+                        <textarea id="limpieza-notas"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </form>
+            </div>
+        </section>
+        
+        <section class="limpieza-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Registro de Limpiezas</h2>
+                    <div class="filter-controls">
+                        <input type="text" id="limpieza-search" placeholder="Buscar registros...">
+                    </div>
+                </div>
+                
+                <div id="limpieza-list" class="limpieza-list">
+                    <!-- Los items se agregarán dinámicamente aquí -->
+                </div>
+
+                <div id="empty-limpieza" class="empty-state">
+                    <p>No hay registros de limpieza</p>
+                    <p>Agrega registros usando el formulario</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para editar registros de limpieza -->
+    <div id="limpieza-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="limpieza-close-btn close-btn">&times;</span>
+            <h2>Editar Registro</h2>
+            <form id="limpieza-edit-form">
+                <input type="hidden" id="limpieza-edit-id">
+                
+                <div class="input-group">
+                    <label for="limpieza-edit-ultima">Fecha de limpieza</label>
+                    <input type="date" id="limpieza-edit-ultima" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="limpieza-edit-notas">Notas (opcional)</label>
+                    <textarea id="limpieza-edit-notas"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Incorporar el script de limpieza -->
+    <script src="js/limpieza.js"></script>
+</body>
+</html>
