@@ -3,15 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario de Aseo</title>
+    <title>Inventario de Aseo | Relmu Salud</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-    <header>
+    <!-- Nueva barra de navegación fija -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="logo.png" alt="Relmu Salud" class="navbar-logo">
+        </div>
+        
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-box"></i>
+                    Inventario
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="limpieza.html" class="nav-link">
+                    <i class="fas fa-broom"></i>
+                    Control de Limpieza
+                </a>
+            </li>
+        </ul>
+        
+        <button class="navbar-toggle" aria-label="Menú de navegación">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+    
+    <!-- Header original (se oculta con CSS) -->
+    <header class="old-header">
         <h1>Inventario de Aseo</h1>
         <p class="tagline">Sistema de control simple y eficiente</p>
         <nav class="main-nav">
@@ -27,22 +56,29 @@
             <div class="card">
                 <h2>Agregar Artículo</h2>
                 <form id="item-form">
-                    <div class="input-group">
+                    <div class="input-group form-floating">
+                        <input type="text" id="item-name" placeholder=" " required>
                         <label for="item-name">Nombre del Artículo</label>
-                        <input type="text" id="item-name" required>
                     </div>
                     
-                    <div class="input-group">
+                    <div class="input-group form-floating">
+                        <input type="number" id="item-quantity" min="0" value="1" placeholder=" " required>
                         <label for="item-quantity">Cantidad</label>
-                        <input type="number" id="item-quantity" min="0" value="1" required>
                     </div>
                     
-                    <div class="input-group">
+                    <div class="input-group form-floating">
+                        <textarea id="item-notes" placeholder=" "></textarea>
                         <label for="item-notes">Notas</label>
-                        <textarea id="item-notes"></textarea>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Agregar</button>
+                    <button type="submit" class="btn btn-primary btn-icon-left">
+                        <i class="fas fa-plus"></i>
+                        Agregar
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i>
+                        Limpiar
+                    </button>
                 </form>
             </div>
         </section>
@@ -52,9 +88,14 @@
                 <div class="card-header">
                     <h2>Inventario Actual</h2>
                     <div class="filter-controls">
-                        <input type="text" id="search-input" placeholder="Buscar artículos...">
+                        <div class="input-group mb-0">
+                            <input type="text" id="search-input" placeholder="Buscar artículos...">
+                            <div class="invalid-feedback">Error en la búsqueda</div>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Se ha eliminado el panel con la guía rápida -->
                 
                 <div class="table-container">
                     <table id="inventory-table">
@@ -72,15 +113,14 @@
                         </tbody>
                     </table>
                 </div>
-
                 <div id="empty-inventory" class="empty-state">
                     <p>No hay artículos en el inventario</p>
-                    <p>Agrega artículos usando el formulario</p>
+                    <p class="text-sm mt-2">Agrega artículos usando el formulario</p>
                 </div>
             </div>
         </section>
     </div>
-
+    
     <!-- Modal para editar artículos -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
@@ -89,26 +129,52 @@
             <form id="edit-form">
                 <input type="hidden" id="edit-id">
                 
-                <div class="input-group">
+                <div class="input-group form-floating">
+                    <input type="text" id="edit-name" placeholder=" " required>
                     <label for="edit-name">Nombre del Artículo</label>
-                    <input type="text" id="edit-name" required>
                 </div>
                 
-                <div class="input-group">
+                <div class="input-group form-floating">
+                    <input type="number" id="edit-quantity" min="0" placeholder=" " required>
                     <label for="edit-quantity">Cantidad</label>
-                    <input type="number" id="edit-quantity" min="0" required>
                 </div>
                 
-                <div class="input-group">
+                <div class="input-group form-floating">
+                    <textarea id="edit-notes" placeholder=" "></textarea>
                     <label for="edit-notes">Notas</label>
-                    <textarea id="edit-notes"></textarea>
                 </div>
                 
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Guardar Cambios
+                </button>
+                <button type="button" class="btn btn-text" id="cancel-edit">
+                    Cancelar
+                </button>
             </form>
         </div>
     </div>
-
+    
+    <!-- Script para manejar el menú responsivo -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navbarToggle = document.querySelector('.navbar-toggle');
+        
+        navbarToggle.addEventListener('click', function() {
+            document.querySelector('.navbar').classList.toggle('navbar-expanded');
+        });
+        
+        // Efecto de scroll para la barra de navegación
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                document.querySelector('.navbar').classList.add('navbar-scrolled');
+            } else {
+                document.querySelector('.navbar').classList.remove('navbar-scrolled');
+            }
+        });
+    });
+    </script>
+    
     <!-- Incorporar el script de inventario -->
     <script src="js/inventario.js"></script>
 </body>

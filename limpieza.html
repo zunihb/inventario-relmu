@@ -3,14 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tareas de Limpieza</title>
+    <title>Control de Limpieza | Relmu Salud</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-    <header>
+    <!-- Nueva barra de navegación fija -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="logo.png" alt="Relmu Salud" class="navbar-logo">
+        </div>
+        
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-box"></i>
+                    Inventario
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="limpieza.html" class="nav-link">
+                    <i class="fas fa-broom"></i>
+                    Control de Limpieza
+                </a>
+            </li>
+        </ul>
+        
+        <button class="navbar-toggle" aria-label="Menú de navegación">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+    
+    <!-- Header original (se oculta con CSS) -->
+    <header class="old-header">
         <h1>Tareas de Limpieza</h1>
         <p class="tagline">Registro simple de limpieza</p>
         <nav class="main-nav">
@@ -26,17 +56,31 @@
             <div class="card">
                 <h2>Registrar Limpieza</h2>
                 <form id="limpieza-form">
-                    <div class="input-group">
+                    <div class="input-group form-floating">
+                        <input type="date" id="limpieza-ultima" placeholder=" " required>
                         <label for="limpieza-ultima">Fecha de limpieza</label>
-                        <input type="date" id="limpieza-ultima" required>
                     </div>
                     
-                    <div class="input-group">
+                    <div class="input-group form-floating">
+                        <textarea id="limpieza-notas" placeholder=" "></textarea>
                         <label for="limpieza-notas">Notas (opcional)</label>
-                        <textarea id="limpieza-notas"></textarea>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Registrar</button>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="limpieza-completa">
+                        <label class="form-check-label" for="limpieza-completa">
+                            Limpieza completa
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-icon-left">
+                        <i class="fas fa-plus"></i>
+                        Registrar
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i>
+                        Limpiar
+                    </button>
                 </form>
             </div>
         </section>
@@ -46,22 +90,26 @@
                 <div class="card-header">
                     <h2>Registro de Limpiezas</h2>
                     <div class="filter-controls">
-                        <input type="text" id="limpieza-search" placeholder="Buscar registros...">
+                        <div class="input-group mb-0">
+                            <input type="text" id="limpieza-search" placeholder="Buscar registros...">
+                            <div class="invalid-feedback">Error en la búsqueda</div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Se ha eliminado el panel con la guía rápida -->
                 
                 <div id="limpieza-list" class="limpieza-list">
                     <!-- Los items se agregarán dinámicamente aquí -->
                 </div>
-
                 <div id="empty-limpieza" class="empty-state">
                     <p>No hay registros de limpieza</p>
-                    <p>Agrega registros usando el formulario</p>
+                    <p class="text-sm mt-2">Agrega registros usando el formulario</p>
                 </div>
             </div>
         </section>
     </div>
-
+    
     <!-- Modal para editar registros de limpieza -->
     <div id="limpieza-edit-modal" class="modal">
         <div class="modal-content">
@@ -70,21 +118,54 @@
             <form id="limpieza-edit-form">
                 <input type="hidden" id="limpieza-edit-id">
                 
-                <div class="input-group">
+                <div class="input-group form-floating">
+                    <input type="date" id="limpieza-edit-ultima" placeholder=" " required>
                     <label for="limpieza-edit-ultima">Fecha de limpieza</label>
-                    <input type="date" id="limpieza-edit-ultima" required>
                 </div>
                 
-                <div class="input-group">
+                <div class="input-group form-floating">
+                    <textarea id="limpieza-edit-notas" placeholder=" "></textarea>
                     <label for="limpieza-edit-notas">Notas (opcional)</label>
-                    <textarea id="limpieza-edit-notas"></textarea>
                 </div>
                 
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="limpieza-edit-completa">
+                    <label class="form-check-label" for="limpieza-edit-completa">
+                        Limpieza completa
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Guardar Cambios
+                </button>
+                <button type="button" class="btn btn-text" id="limpieza-cancel-edit">
+                    Cancelar
+                </button>
             </form>
         </div>
     </div>
-
+    
+    <!-- Script para manejar el menú responsivo -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navbarToggle = document.querySelector('.navbar-toggle');
+        
+        navbarToggle.addEventListener('click', function() {
+            document.querySelector('.navbar').classList.toggle('navbar-expanded');
+        });
+        
+        // Efecto de scroll para la barra de navegación
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                document.querySelector('.navbar').classList.add('navbar-scrolled');
+            } else {
+                document.querySelector('.navbar').classList.remove('navbar-scrolled');
+            }
+        });
+    });
+    </script>
+    
     <!-- Incorporar el script de limpieza -->
     <script src="js/limpieza.js"></script>
 </body>
